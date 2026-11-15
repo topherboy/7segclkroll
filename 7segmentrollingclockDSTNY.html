@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080e1a">
+<title>Seven Segment Clock</title>
+
+<style>
+:root {
+  --on: #ff513d;
+  --off: #39242a;
+  --bg: #080e1a;
+  --dw: clamp(20px,7.6vw,72px);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: white;
+  font-family: -apple-system,system-ui,sans-serif;
+}
+
+main {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #a3b3c9;
+  text-align: center;
+}
+
+.clock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(2px,.8vw,9px);
+  width: 100%;
+  margin: 28px 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.group {
+  display: flex;
+  gap: clamp(2px,.5vw,6px);
+}
+
+.digit {
+  position: relative;
+  width: var(--dw);
+  height: calc(var(--dw) * 1.8);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.layer.enter {
+  animation: slideIn .42s ease-out both;
+}
+
+.layer.exit {
+  animation: slideOut .42s ease-in both;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(110%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateY(0); }
+  to { transform: translateY(-110%); }
+}
+
+.seg {
+  position: absolute;
+  background: var(--off);
+}
+
+.seg.lit {
+  background: var(--on);
+  filter: drop-shadow(0 0 4px var(--on));
+}
+
+.a,.g,.d {
+  left: 14%;
+  width: 72%;
+  height: 8%;
+  clip-path: polygon(
+    14% 0,86% 0,100% 50%,
+    86% 100%,14% 100%,0 50%
+  );
+}
+
+.a { top: 1%; }
+.g { top: 46%; }
+.d { bottom: 1%; }
+
+.b,.c,.e,.f {
+  width: 9%;
+  height: 40%;
+  clip-path: polygon(
+    50% 0,100% 13%,100% 87%,
+    50% 100%,0 87%,0 13%
+  );
+}
+
+.b { right: 2%; top: 6%; }
+.c { right: 2%; bottom: 6%; }
+.e { left: 2%; bottom: 6%; }
+.f { left: 2%; top: 6%; }
+
+.colon {
+  width: clamp(7px,1.5vw,14px);
+  height: calc(var(--dw) * 1.8);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.colon::before,
+.colon::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  width: 50%;
+  aspect-ratio: 1;
+  background: var(--on);
+  border-radius: 50%;
+  box-shadow: 0 0 7px var(--on);
+}
+
+.colon::before { top: 30%; }
+.colon::after { bottom: 30%; }
+
+.ampm {
+  align-self: flex-end;
+  margin-bottom: 6px;
+  font-size: clamp(9px,1.8vw,16px);
+  font-weight: bold;
+  color: #ff9985;
+}
+
+.date {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(18px,4vw,28px);
+  font-weight: bold;
+  text-align: center;
+}
+
+.zone {
+  position: relative;
+  z-index: 2;
+  margin-top: 10px;
+  color: #99acc6;
+  font-size: 12px;
+}
+
+.celebrate {
+  position: relative;
+  z-index: 2;
+  margin-top: 14px;
+  min-height: 20px;
+  color: #ffcf80;
+  font-weight: bold;
+  text-align: center;
+}
+
+.controls {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #2d3950;
+}
+
+.switches,
+.preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+
+label {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff513d;
+}
+
+.preview {
+  margin-top: 20px;
+  gap: 8px;
+}
+
+select,button {
+  background: #172438;
+  color: white;
+  border: 1px solid #45536a;
+  border-radius: 9px;
+  padding: 10px;
+  font: inherit;
+  font-size: 12px;
+}
+
+button { cursor: pointer; }
+
+button:disabled,
+select:disabled {
+  opacity: .4;
+}
+
+.hint {
+  color: #9bb0c8;
+  font-size: 11px;
+  text-align: center;
+  min-height: 30px;
+  margin-top: 14px;
+}
+
+/* Fireworks stay behind the clock */
+.fireworks {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fire {
+  position: absolute;
+  font-size: clamp(20px,4vw,38px);
+  opacity: 0;
+  animation: burst var(--duration)
+    ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes burst {
+  0%,100% {
+    opacity: 0;
+    transform: translateY(24px) scale(.3);
+  }
+  35%,65% {
+    opacity: .95;
+    transform: translateY(-10px) scale(1.15);
+  }
+  90% {
+    opacity: 0;
+    transform: translateY(-25px) scale(1.5);
+  }
+}
+
+@media (max-width: 470px) {
+  :root { --dw: clamp(18px,7.1vw,34px); }
+  .clock { gap: 3px; }
+  .group { gap: 2px; }
+  .ampm { font-size: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer.enter,.layer.exit {
+    animation: none;
+  }
+}
+</style>
+</head>
+
+<body>
+<main>
+<div class="fireworks" id="fireworks"></div>
+
+<div class="title">SEVEN-SEGMENT DIGITAL CLOCK</div>
+
+<div class="clock" id="clock" role="timer">
+  <div class="group" id="hours"></div>
+  <div class="colon"></div>
+  <div class="group" id="minutes"></div>
+  <div class="colon" id="secondColon"></div>
+  <div class="group" id="seconds"></div>
+  <div class="ampm" id="ampm"></div>
+</div>
+
+<div class="date" id="date"></div>
+<div class="zone" id="zone"></div>
+<div class="celebrate" id="celebrate"></div>
+
+<div class="controls">
+  <div class="switches">
+    <label>
+      <input type="checkbox" id="leadingZero">
+      Leading zero
+    </label>
+
+    <label>
+      <input type="checkbox" id="showSeconds" checked>
+      Show seconds
+    </label>
+
+    <label>
+      <input type="checkbox" id="scroll" checked>
+      Scroll upward
+    </label>
+  </div>
+
+  <div class="preview">
+    <select id="mode" aria-label="Clock mode">
+      <option value="live">Live clock</option>
+      <option value="spring">March DST forward</option>
+      <option value="fall">November DST backward</option>
+      <option value="newyear">New Year fireworks</option>
+    </select>
+
+    <select id="year" aria-label="Preview year">
+      <option>2026</option>
+      <option>2027</option>
+      <option>2028</option>
+      <option>2029</option>
+    </select>
+
+    <button id="replay">Replay</button>
+  </div>
+
+  <div class="hint" id="hint"></div>
+</div>
+</main>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const timezone = "America/New_York";
+
+const patterns = {
+  0:"abcdef",
+  1:"bc",
+  2:"abged",
+  3:"abgcd",
+  4:"fgbc",
+  5:"afgcd",
+  6:"afgecd",
+  7:"abc",
+  8:"abcdefg",
+  9:"abfgcd"
+};
+
+const groups = {
+  hours: [],
+  minutes: [],
+  seconds: []
+};
+
+let lastTime = "";
+let lastDate = "";
+let fireworksOn = false;
+let previewStart = Date.now();
+let previewUTC = 0;
+
+const format = new Intl.DateTimeFormat("en-US", {
+  timeZone: timezone,
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+  timeZoneName: "short"
+});
+
+function createLayer(number) {
+  const layer = document.createElement("div");
+  layer.className = "layer";
+
+  for (const name of "abcdefg") {
+    const segment = document.createElement("span");
+    segment.className =
+      "seg " + name +
+      (patterns[number]?.includes(name) ? " lit" : "");
+
+    layer.appendChild(segment);
+  }
+
+  return layer;
+}
+
+function drawGroup(id, text) {
+  const parent = $(id);
+  let digits = groups[id];
+
+  if (digits.length !== text.length) {
+    parent.replaceChildren();
+
+    digits = [...text].map(() => {
+      const digit = document.createElement("div");
+      digit.className = "digit";
+      digit.dataset.value = "";
+      parent.appendChild(digit);
+      return digit;
+    });
+
+    groups[id] = digits;
+  }
+
+  for (let i = 0; i < text.length; i++) {
+    const digit = digits[i];
+    const value = text[i];
+
+    if (digit.dataset.value === value) continue;
+
+    const oldLayer = digit.querySelector(".layer");
+    const newLayer = createLayer(value);
+
+    if (oldLayer && $("scroll").checked) {
+      oldLayer.classList.add("exit");
+      newLayer.classList.add("enter");
+      digit.appendChild(newLayer);
+
+      setTimeout(() => {
+        if (oldLayer.parentNode === digit) {
+          oldLayer.remove();
+        }
+        newLayer.classList.remove("enter");
+      }, 440);
+    } else {
+      digit.replaceChildren(newLayer);
+    }
+
+    digit.dataset.value = value;
+  }
+}
+
+// US DST: second Sunday of March,
+// first Sunday of November.
+function sunday(year, month, nth) {
+  const first = new Date(
+    Date.UTC(year, month - 1, 1)
+  ).getUTCDay();
+
+  return 1 + (7 - first) % 7 + (nth - 1) * 7;
+}
+
+// Each preview begins 30 seconds
+// before the relevant transition.
+function previewAnchor(type, year) {
+  if (type === "spring") {
+    return Date.UTC(
+      year, 2, sunday(year, 3, 2),
+      6, 59, 30
+    );
+  }
+
+  if (type === "fall") {
+    return Date.UTC(
+      year, 10, sunday(year, 11, 1),
+      5, 59, 30
+    );
+  }
+
+  // Dec 31, 11:59:30 PM EST
+  return Date.UTC(year, 0, 1, 4, 59, 30);
+}
+
+function startPreview() {
+  const type = $("mode").value;
+  const year = Number($("year").value);
+
+  previewStart = Date.now();
+  previewUTC = previewAnchor(type, year);
+
+  $("year").disabled = type === "live";
+  $("replay").disabled = type === "live";
+
+  const hints = {
+    live: "Live Eastern Time · Automatic DST",
+    spring:
+      "Second Sunday of March: 1:59:59 AM → 3:00:00 AM",
+    fall:
+      "First Sunday of November: 1:59:59 AM EDT → 1:00:00 AM EST",
+    newyear:
+      "December 31 → January 1 · Fireworks all day"
+  };
+
+  $("hint").textContent = hints[type];
+  lastTime = "";
+}
+
+function showFireworks(show) {
+  if (show === fireworksOn) return;
+
+  fireworksOn = show;
+
+  const field = $("fireworks");
+  field.replaceChildren();
+
+  $("celebrate").textContent =
+    show ? "🎆 HAPPY NEW YEAR! 🎆" : "";
+
+  if (!show) return;
+
+  for (let i = 0; i < 40; i++) {
+    const fire = document.createElement("span");
+    fire.className = "fire";
+
+    fire.textContent =
+      ["🎆", "🎇", "✨", "🎉"][i % 4];
+
+    fire.style.left =
+      (2 + (i * 37.17) % 94) + "%";
+
+    fire.style.top =
+      (2 + (i * 19.73) % 94) + "%";
+
+    fire.style.setProperty(
+      "--duration",
+      (2.5 + (i % 5) * .45) + "s"
+    );
+
+    fire.style.setProperty(
+      "--delay",
+      (-i * .39) + "s"
+    );
+
+    field.appendChild(fire);
+  }
+}
+
+function updateClock() {
+  const mode = $("mode").value;
+
+  // Previews advance 10 times faster.
+  let timestamp = mode === "live"
+    ? Date.now()
+    : previewUTC +
+      (Date.now() - previewStart) * 10;
+
+  // Replay preview automatically.
+  if (
+    mode !== "live" &&
+    timestamp - previewUTC > 180000
+  ) {
+    previewStart = Date.now();
+    timestamp = previewUTC;
+  }
+
+  const parts = {};
+
+  for (const item of format.formatToParts(
+    new Date(timestamp)
+  )) {
+    if (item.type !== "literal") {
+      parts[item.type] = item.value;
+    }
+  }
+
+  const h24 = Number(parts.hour);
+  const h12 = h24 % 12 || 12;
+
+  const hour = $("leadingZero").checked
+    ? String(h12).padStart(2, "0")
+    : String(h12);
+
+  const minutes = parts.minute;
+  const seconds = parts.second;
+
+  const showSeconds = $("showSeconds").checked;
+
+  const signature =
+    hour + "|" + minutes + "|" +
+    (showSeconds ? seconds : "") +
+    "|" + showSeconds;
+
+  if (signature !== lastTime) {
+    drawGroup("hours", hour);
+    drawGroup("minutes", minutes);
+
+    if (showSeconds) {
+      drawGroup("seconds", seconds);
+    }
+
+    $("seconds").style.display =
+      showSeconds ? "" : "none";
+
+    $("secondColon").style.display =
+      showSeconds ? "" : "none";
+
+    $("ampm").textContent =
+      h24 < 12 ? "AM" : "PM";
+
+    $("clock").setAttribute(
+      "aria-label",
+      hour + ":" + minutes +
+      (showSeconds ? ":" + seconds : "") +
+      (h24 < 12 ? " AM" : " PM")
+    );
+
+    lastTime = signature;
+  }
+
+  const fullDate =
+    parts.weekday + ", " +
+    parts.month + " " +
+    Number(parts.day) + ", " +
+    parts.year;
+
+  if (fullDate !== lastDate) {
+    $("date").textContent = fullDate;
+    lastDate = fullDate;
+  }
+
+  $("zone").textContent =
+    (mode === "live" ? "Live" : "Preview") +
+    " · Eastern Time · " +
+    parts.timeZoneName;
+
+  // Entire January 1, midnight to midnight.
+  showFireworks(
+    parts.month === "January" &&
+    Number(parts.day) === 1
+  );
+}
+
+$("mode").addEventListener(
+  "change", startPreview
+);
+
+$("year").addEventListener(
+  "change", startPreview
+);
+
+$("replay").addEventListener(
+  "click", startPreview
+);
+
+for (const id of [
+  "leadingZero", "showSeconds", "scroll"
+]) {
+  $(id).addEventListener("change", () => {
+    lastTime = "";
+    updateClock();
+  });
+}
+
+$("year").value = "2026";
+
+startPreview();
+updateClock();
+
+setInterval(updateClock, 100);
+</script>
+</body>
+</html>
