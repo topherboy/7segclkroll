@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3f8f4">
+<title>Cozy Calm — Cats, Puppies & Gentle Ideas</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;min-height:100dvh;
+ background:#f3f8f4;color:#29483b;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ display:grid;place-items:center;padding:16px
+}
+main{width:min(100%,600px);text-align:center}
+h1{font-size:clamp(24px,5vw,34px);margin:6px 0}
+.subtitle{margin:4px 0 16px;color:#628371}
+.card{
+ background:white;border:1px solid #dbe9df;
+ box-shadow:0 12px 35px #33544416;
+ border-radius:25px;padding:22px 18px 25px;
+ min-height:380px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;cursor:pointer;
+ touch-action:manipulation;user-select:none;
+ -webkit-tap-highlight-color:transparent
+}
+.card:focus-visible{outline:3px solid #38976a;outline-offset:4px}
+.animal{
+ font-size:clamp(90px,23vw,145px);
+ line-height:1.2;margin:6px 0 14px
+}
+.clock-picture{
+ display:none;width:min(100%,320px);margin:6px auto 14px;
+ background:#122539;border:7px solid #34495b;
+ border-radius:19px;padding:18px 12px 12px;
+ align-items:center;flex-direction:column;justify-content:center
+}
+.clock-numbers{
+ font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+ font-variant-numeric:tabular-nums;font-weight:800;
+ font-size:clamp(42px,12vw,65px);letter-spacing:-3px;
+ color:#86efac;text-shadow:0 0 14px #4ade8077
+}
+.clock-caption{
+ color:#b9c9d8;font-size:12px;
+ letter-spacing:2px;font-weight:750
+}
+.tag{
+ font-size:12px;font-weight:750;letter-spacing:2px;
+ text-transform:uppercase;color:#568a72
+}
+.idea{
+ font-size:clamp(22px,5vw,31px);
+ font-weight:750;line-height:1.3;
+ margin:14px 0 12px;max-width:500px
+}
+.detail{
+ font-size:17px;line-height:1.5;color:#577567;
+ max-width:480px;min-height:50px
+}
+.controls{
+ display:flex;justify-content:center;align-items:center;
+ gap:12px;flex-wrap:wrap;margin:20px 0 10px
+}
+button{
+ background:#2b8058;border:0;color:white;
+ border-radius:13px;padding:12px 19px;min-height:48px;
+ font:inherit;font-weight:650;cursor:pointer
+}
+button.secondary{background:#e0eee5;color:#276345}
+.sound{
+ display:flex;align-items:center;gap:8px;
+ padding:12px;border-radius:13px;
+ background:#e0eee5;cursor:pointer;font-weight:650
+}
+.sound input{accent-color:#2b8058;width:20px;height:20px}
+.foot{font-size:13px;color:#688475;line-height:1.45}
+@media(prefers-reduced-motion:no-preference){
+ .card.pop .animal{animation:bob .42s ease-out}
+ .card.pop .idea,.card.pop .detail{animation:appear .35s ease-out}
+ @keyframes bob{
+  from{transform:translateY(12px);opacity:.3}
+  to{transform:translateY(0);opacity:1}
+ }
+ @keyframes appear{
+  from{opacity:.25;transform:translateY(7px)}
+  to{opacity:1;transform:translateY(0)}
+ }
+}
+</style>
+</head>
+<body>
+<main>
+<h1>🐾 Cozy Calm</h1>
+<p class="subtitle">A gentle idea whenever you need one</p>
+
+<div class="card" id="card" role="button" tabindex="0"
+     aria-label="Show a new calming idea">
+ <div class="animal" id="animal" aria-hidden="true">🐱</div>
+ <div class="clock-picture" id="clockPicture"
+      role="img" aria-label="24-hour digital clock">
+  <div class="clock-numbers" id="clockNumbers">21:45</div>
+  <div class="clock-caption">24-HOUR DIGITAL CLOCK</div>
+ </div>
+ <div class="tag" id="category">Breathe</div>
+ <div class="idea" id="idea">Breathe in gently for 4 counts.</div>
+ <div class="detail" id="detail">
+  Then breathe out slowly for 6 counts.
+  Repeat three times, without forcing your breath.
+ </div>
+</div>
+
+<div class="controls">
+ <button id="next">Another calming idea →</button>
+ <label class="sound">
+  <input type="checkbox" id="purr">
+  🔊 Purr-like sound
+ </label>
+ <button id="repeat" class="secondary">↻ Repeat this idea</button>
+</div>
+<p class="foot">
+ Tap the card or button for a new suggestion.
+ Sound starts OFF. Skip any activity that doesn't feel right.
+</p>
+</main>
+
+<script>
+"use strict";
+
+const ideas=[
+ {animal:"🐱",type:"Breathe",
+  title:"Breathe in gently for 4 counts.",
+  detail:"Then breathe out slowly for 6 counts. Repeat three times, without forcing your breath."},
+
+ {animal:"🐈",type:"Look around",
+  title:"Name five things you can see.",
+  detail:"Notice their colors and shapes. You can point to them or say them quietly."},
+
+ {animal:"⏰",type:"Clock comfort",
+  title:"Open a clock app and watch the time.",
+  detail:"Watch the digits change or roll upward. Follow the gentle rhythm for a little while. You can open your rolling clock if you like."},
+
+ {animal:"🐶",type:"Listen",
+  title:"Name five things you can hear.",
+  detail:"Listen near and far. If it's quiet, notice even the tiniest sounds."},
+
+ {animal:"🐱",type:"Artie time",
+  title:"Let Artie lick your hand—if he wants to.",
+  detail:"If Artie is nearby and comfortable, enjoy the gentle feeling. Wash your hands afterward."},
+
+ {animal:"🐈",type:"Pretzel appreciation",
+  title:"Tell me five things you love about Pretzel.",
+  detail:"Think about funny habits, favorite cuddles, and what makes Pretzel special."},
+
+ {animal:"🤖",type:"Cozy companion",
+  title:"Hold your robotic kitty.",
+  detail:"Notice its shape and weight in your hands. Give it a gentle hug if you like."},
+
+ {animal:"🐕",type:"Feel grounded",
+  title:"Notice four things you can feel.",
+  detail:"Your feet on the floor, your shirt, the chair, or something soft nearby."},
+
+ {animal:"🐱",type:"Easy stretch",
+  title:"Stretch like a sleepy kitten.",
+  detail:"Slowly raise your arms, stretch comfortably, then relax your shoulders."},
+
+ {animal:"🐶",type:"Gentle movement",
+  title:"Push your feet into the floor.",
+  detail:"Feel the ground support you for five seconds. Then release."},
+
+ {animal:"🐈",type:"Take a pause",
+  title:"Imagine a kitten sleeping in sunshine.",
+  detail:"Picture the warm, safe spot. Notice how slowly its body rises and falls."},
+
+ {animal:"🐱",type:"Hands",
+  title:"Press your palms together gently.",
+  detail:"Hold for three seconds, then release. Notice how your hands feel."},
+
+ {animal:"🐕",type:"Smell",
+  title:"Notice two scents around you.",
+  detail:"Maybe soap, fresh air, or a favorite blanket. Skip this if scents bother you."},
+
+ {animal:"🐈",type:"Taste",
+  title:"Notice one pleasant taste.",
+  detail:"If you have water nearby, take a sip and notice its coolness."},
+
+ {animal:"🐶",type:"Kind thoughts",
+  title:"Name three things you did well today.",
+  detail:"Small things count. You don't have to do anything perfectly."},
+
+ {animal:"🐱",type:"Cat memories",
+  title:"Remember a funny moment with Pretzel.",
+  detail:"Let yourself smile at a silly or sweet thing your favorite cat did."},
+
+ {animal:"🐕",type:"Unclench",
+  title:"Relax your jaw and drop your shoulders.",
+  detail:"Let your hands rest loosely. You don't need to change anything else."},
+
+ {animal:"🐈",type:"Colors",
+  title:"Find three things that are green.",
+  detail:"Look slowly around the room. You can choose a different color if you prefer."},
+
+ {animal:"🐶",type:"Comfort",
+  title:"Hold a soft blanket or stuffed animal.",
+  detail:"Notice its texture, temperature, and how it feels in your hands."},
+
+ {animal:"🐱",type:"Choose your pace",
+  title:"Take one comfortable breath.",
+  detail:"There's no countdown to finish. Stay with this idea as long as you want."},
+
+ {animal:"🐈",type:"Favorite things",
+  title:"Name five animals that make you happy.",
+  detail:"They can be real pets, favorite characters, or animals you'd love to meet."}
+];
+
+const clockPicture=document.getElementById("clockPicture");
+const clockNumbers=document.getElementById("clockNumbers");
+
+function updateClockPicture(){
+ clockNumbers.textContent=new Intl.DateTimeFormat("en-GB",{
+  hour:"2-digit",minute:"2-digit",hourCycle:"h23"
+ }).format(new Date());
+}
+updateClockPicture();
+setInterval(updateClockPicture,10000);
+
+const card=document.getElementById("card");
+const animal=document.getElementById("animal");
+const category=document.getElementById("category");
+const idea=document.getElementById("idea");
+const detail=document.getElementById("detail");
+const sound=document.getElementById("purr");
+
+let last=0;
+let audioContext=null;
+
+function render(item){
+ const isClock=item.type==="Clock comfort";
+ animal.style.display=isClock?"none":"";
+ clockPicture.style.display=isClock?"flex":"none";
+ if(isClock)updateClockPicture();
+ animal.textContent=item.animal;
+ category.textContent=item.type;
+ idea.textContent=item.title;
+ detail.textContent=item.detail;
+ card.classList.remove("pop");
+ void card.offsetWidth;
+ card.classList.add("pop");
+}
+
+function playPurr(){
+ if(!sound.checked)return;
+ try{
+  const Audio=window.AudioContext||window.webkitAudioContext;
+  if(!Audio)return;
+  if(!audioContext)audioContext=new Audio();
+  audioContext.resume();
+
+  const start=audioContext.currentTime;
+  const osc=audioContext.createOscillator();
+  const gain=audioContext.createGain();
+  const lfo=audioContext.createOscillator();
+  const mod=audioContext.createGain();
+
+  osc.type="sine";
+  osc.frequency.value=105;
+  lfo.type="sine";
+  lfo.frequency.value=23;
+  mod.gain.value=24;
+
+  lfo.connect(mod);
+  mod.connect(osc.frequency);
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+
+  gain.gain.setValueAtTime(.0001,start);
+  gain.gain.exponentialRampToValueAtTime(.045,start+.08);
+  gain.gain.setValueAtTime(.045,start+.47);
+  gain.gain.exponentialRampToValueAtTime(.0001,start+.85);
+
+  osc.start(start);
+  lfo.start(start);
+  osc.stop(start+.86);
+  lfo.stop(start+.86);
+
+  osc.onended=()=>{
+   osc.disconnect();
+   gain.disconnect();
+   lfo.disconnect();
+   mod.disconnect();
+  };
+ }catch(e){}
+}
+
+function next(){
+ let i;
+ do{
+  i=Math.floor(Math.random()*ideas.length);
+ }while(i===last);
+ last=i;
+ render(ideas[i]);
+ playPurr();
+}
+
+function repeat(){
+ render(ideas[last]);
+ playPurr();
+}
+
+card.addEventListener("click",next);
+card.addEventListener("keydown",e=>{
+ if(e.key==="Enter"||e.key===" "){
+  e.preventDefault();
+  next();
+ }
+});
+document.getElementById("next").addEventListener("click",next);
+document.getElementById("repeat").addEventListener("click",repeat);
+</script>
+</body>
+</html>
