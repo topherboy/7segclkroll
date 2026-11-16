@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eaf3ec">
+<title>Cozy Calm</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eaf3ec;color:#132b1c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:620px;min-height:100dvh;margin:auto;padding:20px 14px 28px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+h1{font-size:clamp(29px,6vw,38px);margin:0 0 5px;color:#163e29}
+.subtitle{font-size:16px;font-weight:650;color:#31523b;margin:0 0 16px}
+.card{background:white;border:2px solid #91b69d;border-radius:23px;padding:16px 16px 25px;min-height:430px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.photo{display:block;width:min(100%,450px);aspect-ratio:4/3;object-fit:cover;border-radius:16px;background:#e2eee5}
+.fallback{display:none;font-size:90px;padding:34px}
+.clock{display:none;background:#162b3b;border:6px solid #526978;border-radius:17px;padding:23px 14px;width:min(100%,380px);margin:22px auto;color:#a2f6b6}
+.clocktime{font:800 clamp(39px,10vw,66px) ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.clocklabel{font-size:12px;font-weight:800;letter-spacing:2px;color:#e6f2ed}
+.tag{font-size:12px;font-weight:850;letter-spacing:2px;text-transform:uppercase;color:#286442}
+.idea{font-weight:850;font-size:clamp(23px,5vw,31px);line-height:1.25}
+.detail{font-size:clamp(17px,3.6vw,20px);line-height:1.45;font-weight:600;color:#294033}
+.buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:17px}
+button{font:750 17px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border:none;border-radius:13px;min-height:52px;padding:13px 19px;cursor:pointer;background:#14683a;color:#fff}
+button.secondary{background:#cfe5d5;color:#17462d}
+button:focus-visible{outline:4px solid #194a31;outline-offset:3px}
+.footer{font-size:14px;color:#335641;font-weight:600;line-height:1.5;margin:16px 0 0}
+</style>
+</head>
+<body>
+<main>
+<h1>🐾 Cozy Calm</h1>
+<p class="subtitle">One gentle idea at a time</p>
+<section class="card" aria-live="polite" aria-atomic="true">
+  <img class="photo" id="photo" src="images/kitten-01.webp" alt="A cozy kitten or puppy">
+  <div class="fallback" id="fallback" aria-hidden="true">🐱</div>
+  <div class="clock" id="clock" role="img" aria-label="A 24-hour digital clock">
+    <div class="clocktime" id="clocktime">00:00</div>
+    <div class="clocklabel">24-HOUR CLOCK</div>
+  </div>
+  <div class="tag" id="tag">Rest</div>
+  <div class="idea" id="idea">Turn off the lights.</div>
+  <div class="detail" id="detail">If your room lights are on, switch them off. You can leave a small light on if you prefer.</div>
+</section>
+<div class="buttons">
+  <button id="next" type="button">Try another idea →</button>
+</div>
+<p class="footer">No sounds or surprise videos. You can skip any activity, or take as much time as you need.</p>
+</main>
+<script>
+"use strict";
+
+// These filenames match the pictures in the images folder.
+const pictures=[
+  ...Array.from({length:24},(_,i)=>`images/kitten-${String(i+1).padStart(2,"0")}.webp`),
+  ...Array.from({length:4},(_,i)=>`images/puppy-${String(i+1).padStart(2,"0")}.webp`),
+  "images/kitten-puppy-01.webp",
+  "images/kitten-puppy-02.webp"
+];
+
+// [category, heading, detail, show 24-hour clock?]
+const ideas=[
+["Rest","Turn off the lights.","If your room lights are on, switch them off. You can leave a small light on if you prefer."],
+["Rest","Try taking a short nap.","If you feel sleepy, get comfortable. Resting is fine even if you do not fall asleep."],
+["Family","Say five nice things about Mom.","Think about things you love or appreciate about her."],
+["Family","Say five nice things about Dad.","Think about favorite memories or things you enjoy doing together."],
+["Family","Say five nice things about your sister.","Think about kind, funny, or special memories."],
+["Artie","Say five nice things about Artie.","Remember his funny habits and sweet moments."],
+["Pretzel","Say five nice things about Pretzel.","What makes your favorite cat special?"],
+["Snack","Have a small snack.","If you are hungry, choose a favorite snack and enjoy it comfortably."],
+["Comfort","Have a drink of water.","Take a few gentle sips if you are thirsty."],
+["Comfort","Hold your robotic kitty.","Feel its familiar shape and comforting weight."],
+["Breathing","Take a slow, gentle breath.","Try breathing in for four comfortable counts and out for six. Do not force it."],
+["Grounding","Name five things you can see.","Notice their colors and shapes."],
+["Grounding","Name five things you can hear.","Listen for nearby and distant sounds."],
+["Clock","Open a clock app and watch the time.","Watch the digits change or roll upward. Enjoy the steady rhythm.",true],
+["Family","Ask for a hug if you want one.","You can also ask someone to sit nearby instead."],
+["Pretzel","Pet Pretzel if Pretzel wants to be petted.","Notice the soft fur, and give your cat room to move away."],
+["Artie","Let Artie lick your hand if he wants to.","Enjoy the gentle feeling, then wash your hands afterward."],
+["Quiet","Find a comfortable quiet place.","Stay there for a little while if it feels helpful."],
+["Comfort","Wrap up in a soft blanket.","Notice how the blanket feels against you."],
+["Imagine","Imagine a kitten sleeping in sunshine.","Picture a peaceful, cozy resting spot."],
+["Stretch","Stretch like a sleepy kitten.","Reach your arms gently, then relax."],
+["Grounding","Press your feet against the floor.","Notice the steady support beneath you."],
+["Colors","Find three green things.","Take your time looking at each one."],
+["Rest","Rest your eyes for a minute.","Close them if you like, or look at one quiet spot."],
+["Comfort","Sit near someone you trust.","You do not have to talk unless you want to."],
+["Creativity","Draw a kitten.","It can be simple, silly, or detailed."],
+["Creativity","Imagine your dream kitten bed.","What colors and soft things would it have?"],
+["Sound","Ask to lower the TV or music volume.","Choose a sound level that feels comfortable."],
+["Feelings","Name one thing that feels good right now.","It can be something very small."],
+["Pretzel","Remember something funny Pretzel did.","Enjoy the memory at your own pace."],
+["Comfort","Hold a favorite stuffed animal.","Notice its soft fabric or fur."],
+["Kindness","Think of something you did well today.","Small successes count too."],
+["Grounding","Notice four things you can feel.","Try your clothes, seat, feet, or a soft object."],
+["Movement","Wiggle your fingers slowly.","Then let your hands relax."],
+["Quiet","Unclench your jaw.","Let your shoulders settle comfortably."],
+["Animals","Name five animals that make you smile.","Pets, puppies, kittens, and imaginary animals count."],
+["Comfort","Choose a comfortable shirt or sweater.","Notice how the fabric feels."],
+["Rest","Take a short break from talking.","You can enjoy quiet and return when ready."],
+["Breathing","Take one comfortable breath.","There is no rush to do another."],
+["Imagine","Imagine a puppy sleeping peacefully.","Picture its soft blanket and cozy place."],
+["Fun","Think of your favorite kitten picture.","Remember what makes it so adorable."],
+["Family","Tell someone you would like company.","They can sit nearby without needing to talk."],
+["Grounding","Notice something soft nearby.","Feel its texture gently."],
+["Creativity","Think of three funny cat names.","Make them as silly as you like."],
+["Kindness","Think of something you appreciate about home.","It can be a room, a person, or a familiar object."],
+["Quiet","Take a break from a busy screen.","Look away for a little while if you want."],
+["Comfort","Choose a favorite cozy spot.","Sit or lie down comfortably."],
+["Artie","Remember a happy moment with Artie.","What did he do that made you smile?"],
+["Choice","Choose the activity that feels best.","You can skip suggestions or repeat a favorite."],
+["Reminder","You do not need to finish an activity.","You can rest, pause, or try another idea."]
+];
+
+function shuffled(n){
+  const a=Array.from({length:n},(_,i)=>i);
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+let ideaOrder=shuffled(ideas.length);
+let pictureOrder=shuffled(pictures.length);
+let ideaIndex=0;
+let pictureIndex=0;
+let lastPicture=-1;
+let lastIdea=-1;
+
+const el=id=>document.getElementById(id);
+const photo=el("photo");
+const fallback=el("fallback");
+const clock=el("clock");
+
+function takeIdea(){
+  if(ideaIndex===ideaOrder.length){
+    ideaOrder=shuffled(ideas.length);
+    if(ideaOrder[0]===lastIdea){
+      [ideaOrder[0],ideaOrder[1]]=
+        [ideaOrder[1],ideaOrder[0]];
+    }
+    ideaIndex=0;
+  }
+  lastIdea=ideaOrder[ideaIndex++];
+  return ideas[lastIdea];
+}
+
+function takePicture(){
+  if(pictureIndex===pictureOrder.length){
+    pictureOrder=shuffled(pictures.length);
+    if(pictureOrder[0]===lastPicture){
+      [pictureOrder[0],pictureOrder[1]]=
+        [pictureOrder[1],pictureOrder[0]];
+    }
+    pictureIndex=0;
+  }
+  lastPicture=pictureOrder[pictureIndex++];
+  return pictures[lastPicture];
+}
+
+function updateClock(){
+  el("clocktime").textContent=
+    new Intl.DateTimeFormat("en-GB",{
+      hour:"2-digit",
+      minute:"2-digit",
+      hourCycle:"h23"
+    }).format(new Date());
+}
+
+function show(item){
+  el("tag").textContent=item[0];
+  el("idea").textContent=item[1];
+  el("detail").textContent=item[2];
+
+  if(item[3]){
+    photo.style.display="none";
+    fallback.style.display="none";
+    clock.style.display="block";
+    updateClock();
+  } else {
+    clock.style.display="none";
+    fallback.style.display="none";
+    photo.style.display="block";
+    photo.src=takePicture();
+  }
+}
+
+photo.onerror=()=>{
+  photo.style.display="none";
+  fallback.style.display="block";
+};
+
+el("next").addEventListener("click",()=>{
+  show(takeIdea());
+});
+
+setInterval(()=>{
+  if(clock.style.display==="block"){
+    updateClock();
+  }
+},10000);
+
+// Start with the familiar light-switching suggestion.
+show(ideas[0]);
+</script>
+</body>
+</html>
